@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.angrydogsvscats.game'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.angrydogsvscats.game"
+        minSdk 21          // Android 5.0+ (covers practically every Android phone in use)
+        targetSdk 35
+        versionCode 2
+        versionName "1.1"
+    }
+
+    // Fixed signing key so every new build installs over the previous one (keeps saved scores).
+    // Fine for sharing the APK directly. For Google Play, create your own private key instead.
+    signingConfigs {
+        sideload {
+            storeFile file('sideload.keystore')
+            storePassword 'dogsvscats'
+            keyAlias 'sideload'
+            keyPassword 'dogsvscats'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.sideload
+        }
+        debug {
+            signingConfig signingConfigs.sideload
+        }
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// No external libraries needed: the game is plain HTML running in Android's built-in WebView.

@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build the APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk out/AngryDogsVsCats.apk
+
+      - name: Keep the APK as a build file
+        uses: actions/upload-artifact@v4
+        with:
+          name: AngryDogsVsCats-APK
+          path: out/AngryDogsVsCats.apk
+
+      - name: Publish a phone-friendly download (Releases page)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest out/AngryDogsVsCats.apk \
+            --title "Angry Dogs vs. Cats - latest build" \
+            --notes "Download AngryDogsVsCats.apk on your Android phone and open it to install. Built from commit ${GITHUB_SHA::7}."
